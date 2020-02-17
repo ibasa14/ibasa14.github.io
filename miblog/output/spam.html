@@ -1,0 +1,3236 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+            <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+        <title>Procesamiento de Lenguaje Natural</title>
+
+        <!-- Bootstrap Core CSS -->
+        <link href="./theme/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- Custom CSS -->
+        <link href="./theme/css/clean-blog.min.css" rel="stylesheet">
+
+        <!-- Code highlight color scheme -->
+            <link href="./theme/css/code_blocks/github.css" rel="stylesheet">
+
+
+        <!-- Custom Fonts -->
+        <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+        <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+
+
+        <meta name="description" content="Desarrollo de un modelo clasificador de correos spam-ham, haciendo uso de técnicas de procesado de lenguaje natural mediante SpaCy.">
+
+        <meta name="author" content="Ignacio Basagoiti">
+
+        <meta name="tags" content="Machine Learning">
+        <meta name="tags" content="NLP">
+        <meta name="tags" content="SpaCy">
+
+	                <meta property="og:locale" content="">
+		<meta property="og:site_name" content="Artículos por Ignacio Basagoiti">
+
+	<meta property="og:type" content="article">
+            <meta property="article:author" content="./author/ignacio-basagoiti.html">
+	<meta property="og:url" content="./spam.html">
+	<meta property="og:title" content="Procesamiento de Lenguaje Natural">
+	<meta property="article:published_time" content="2020-01-24 18:22:00+01:00">
+            <meta property="og:description" content="Desarrollo de un modelo clasificador de correos spam-ham, haciendo uso de técnicas de procesado de lenguaje natural mediante SpaCy.">
+
+            <meta property="og:image" content=".images/spam.jpg">
+    <link rel="icon" href="/ib_favicon.ico">
+</head>
+
+<body class="article-spam">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="./">Artículos por Ignacio Basagoiti</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Header -->
+        <header class="intro-header" style="background-image: url('./images/spam.jpg')">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <div class="post-heading">
+                        <h1>Procesamiento de Lenguaje Natural</h1>
+                        <span class="meta">Posted by
+                                <a href="./author/ignacio-basagoiti.html">Ignacio Basagoiti</a>
+                             on vi. 24 enero 2020
+                        </span>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+    <!-- Post Content -->
+    <article>
+        <style type="text/css">/*!
+*
+* IPython notebook
+*
+*/
+/* CSS font colors for translated ANSI escape sequences */
+/* The color values are a mix of
+   http://www.xcolors.net/dl/baskerville-ivorylight and
+   http://www.xcolors.net/dl/euphrasia */
+.ansi-black-fg {
+  color: #3E424D;
+}
+.ansi-black-bg {
+  background-color: #3E424D;
+}
+.ansi-black-intense-fg {
+  color: #282C36;
+}
+.ansi-black-intense-bg {
+  background-color: #282C36;
+}
+.ansi-red-fg {
+  color: #E75C58;
+}
+.ansi-red-bg {
+  background-color: #E75C58;
+}
+.ansi-red-intense-fg {
+  color: #B22B31;
+}
+.ansi-red-intense-bg {
+  background-color: #B22B31;
+}
+.ansi-green-fg {
+  color: #00A250;
+}
+.ansi-green-bg {
+  background-color: #00A250;
+}
+.ansi-green-intense-fg {
+  color: #007427;
+}
+.ansi-green-intense-bg {
+  background-color: #007427;
+}
+.ansi-yellow-fg {
+  color: #DDB62B;
+}
+.ansi-yellow-bg {
+  background-color: #DDB62B;
+}
+.ansi-yellow-intense-fg {
+  color: #B27D12;
+}
+.ansi-yellow-intense-bg {
+  background-color: #B27D12;
+}
+.ansi-blue-fg {
+  color: #208FFB;
+}
+.ansi-blue-bg {
+  background-color: #208FFB;
+}
+.ansi-blue-intense-fg {
+  color: #0065CA;
+}
+.ansi-blue-intense-bg {
+  background-color: #0065CA;
+}
+.ansi-magenta-fg {
+  color: #D160C4;
+}
+.ansi-magenta-bg {
+  background-color: #D160C4;
+}
+.ansi-magenta-intense-fg {
+  color: #A03196;
+}
+.ansi-magenta-intense-bg {
+  background-color: #A03196;
+}
+.ansi-cyan-fg {
+  color: #60C6C8;
+}
+.ansi-cyan-bg {
+  background-color: #60C6C8;
+}
+.ansi-cyan-intense-fg {
+  color: #258F8F;
+}
+.ansi-cyan-intense-bg {
+  background-color: #258F8F;
+}
+.ansi-white-fg {
+  color: #C5C1B4;
+}
+.ansi-white-bg {
+  background-color: #C5C1B4;
+}
+.ansi-white-intense-fg {
+  color: #A1A6B2;
+}
+.ansi-white-intense-bg {
+  background-color: #A1A6B2;
+}
+.ansi-default-inverse-fg {
+  color: #FFFFFF;
+}
+.ansi-default-inverse-bg {
+  background-color: #000000;
+}
+.ansi-bold {
+  font-weight: bold;
+}
+.ansi-underline {
+  text-decoration: underline;
+}
+/* The following styles are deprecated an will be removed in a future version */
+.ansibold {
+  font-weight: bold;
+}
+.ansi-inverse {
+  outline: 0.5px dotted;
+}
+/* use dark versions for foreground, to improve visibility */
+.ansiblack {
+  color: black;
+}
+.ansired {
+  color: darkred;
+}
+.ansigreen {
+  color: darkgreen;
+}
+.ansiyellow {
+  color: #c4a000;
+}
+.ansiblue {
+  color: darkblue;
+}
+.ansipurple {
+  color: darkviolet;
+}
+.ansicyan {
+  color: steelblue;
+}
+.ansigray {
+  color: gray;
+}
+/* and light for background, for the same reason */
+.ansibgblack {
+  background-color: black;
+}
+.ansibgred {
+  background-color: red;
+}
+.ansibggreen {
+  background-color: green;
+}
+.ansibgyellow {
+  background-color: yellow;
+}
+.ansibgblue {
+  background-color: blue;
+}
+.ansibgpurple {
+  background-color: magenta;
+}
+.ansibgcyan {
+  background-color: cyan;
+}
+.ansibggray {
+  background-color: gray;
+}
+div.cell {
+  /* Old browsers */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-box-align: stretch;
+  display: -moz-box;
+  -moz-box-orient: vertical;
+  -moz-box-align: stretch;
+  display: box;
+  box-orient: vertical;
+  box-align: stretch;
+  /* Modern browsers */
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  border-radius: 2px;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  border-width: 1px;
+  border-style: solid;
+  border-color: transparent;
+  width: 100%;
+  padding: 5px;
+  /* This acts as a spacer between cells, that is outside the border */
+  margin: 0px;
+  outline: none;
+  position: relative;
+  overflow: visible;
+}
+div.cell:before {
+  position: absolute;
+  display: block;
+  top: -1px;
+  left: -1px;
+  width: 5px;
+  height: calc(100% +  2px);
+  content: '';
+  background: transparent;
+}
+div.cell.jupyter-soft-selected {
+  border-left-color: #E3F2FD;
+  border-left-width: 1px;
+  padding-left: 5px;
+  border-right-color: #E3F2FD;
+  border-right-width: 1px;
+  background: #E3F2FD;
+}
+@media print {
+  div.cell.jupyter-soft-selected {
+    border-color: transparent;
+  }
+}
+div.cell.selected,
+div.cell.selected.jupyter-soft-selected {
+  border-color: #ababab;
+}
+div.cell.selected:before,
+div.cell.selected.jupyter-soft-selected:before {
+  position: absolute;
+  display: block;
+  top: -1px;
+  left: -1px;
+  width: 5px;
+  height: calc(100% +  2px);
+  content: '';
+  background: #42A5F5;
+}
+@media print {
+  div.cell.selected,
+  div.cell.selected.jupyter-soft-selected {
+    border-color: transparent;
+  }
+}
+.edit_mode div.cell.selected {
+  border-color: #66BB6A;
+}
+.edit_mode div.cell.selected:before {
+  position: absolute;
+  display: block;
+  top: -1px;
+  left: -1px;
+  width: 5px;
+  height: calc(100% +  2px);
+  content: '';
+  background: #66BB6A;
+}
+@media print {
+  .edit_mode div.cell.selected {
+    border-color: transparent;
+  }
+}
+.prompt {
+  /* This needs to be wide enough for 3 digit prompt numbers: In[100]: */
+  min-width: 14ex;
+  /* This padding is tuned to match the padding on the CodeMirror editor. */
+  padding: 0.4em;
+  margin: 0px;
+  font-family: monospace;
+  text-align: right;
+  /* This has to match that of the the CodeMirror class line-height below */
+  line-height: 1.21429em;
+  /* Don't highlight prompt number selection */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  /* Use default cursor */
+  cursor: default;
+}
+@media (max-width: 540px) {
+  .prompt {
+    text-align: left;
+  }
+}
+div.inner_cell {
+  min-width: 0;
+  /* Old browsers */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-box-align: stretch;
+  display: -moz-box;
+  -moz-box-orient: vertical;
+  -moz-box-align: stretch;
+  display: box;
+  box-orient: vertical;
+  box-align: stretch;
+  /* Modern browsers */
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  /* Old browsers */
+  -webkit-box-flex: 1;
+  -moz-box-flex: 1;
+  box-flex: 1;
+  /* Modern browsers */
+  flex: 1;
+}
+/* input_area and input_prompt must match in top border and margin for alignment */
+div.input_area {
+  border: 1px solid #cfcfcf;
+  border-radius: 2px;
+  background: #f7f7f7;
+  line-height: 1.21429em;
+}
+/* This is needed so that empty prompt areas can collapse to zero height when there
+   is no content in the output_subarea and the prompt. The main purpose of this is
+   to make sure that empty JavaScript output_subareas have no height. */
+div.prompt:empty {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+div.unrecognized_cell {
+  padding: 5px 5px 5px 0px;
+  /* Old browsers */
+  display: -webkit-box;
+  -webkit-box-orient: horizontal;
+  -webkit-box-align: stretch;
+  display: -moz-box;
+  -moz-box-orient: horizontal;
+  -moz-box-align: stretch;
+  display: box;
+  box-orient: horizontal;
+  box-align: stretch;
+  /* Modern browsers */
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+}
+div.unrecognized_cell .inner_cell {
+  border-radius: 2px;
+  padding: 5px;
+  font-weight: bold;
+  color: red;
+  border: 1px solid #cfcfcf;
+  background: #eaeaea;
+}
+div.unrecognized_cell .inner_cell a {
+  color: inherit;
+  text-decoration: none;
+}
+div.unrecognized_cell .inner_cell a:hover {
+  color: inherit;
+  text-decoration: none;
+}
+@media (max-width: 540px) {
+  div.unrecognized_cell > div.prompt {
+    display: none;
+  }
+}
+div.code_cell {
+  /* avoid page breaking on code cells when printing */
+}
+@media print {
+  div.code_cell {
+    page-break-inside: avoid;
+  }
+}
+/* any special styling for code cells that are currently running goes here */
+div.input {
+  page-break-inside: avoid;
+  /* Old browsers */
+  display: -webkit-box;
+  -webkit-box-orient: horizontal;
+  -webkit-box-align: stretch;
+  display: -moz-box;
+  -moz-box-orient: horizontal;
+  -moz-box-align: stretch;
+  display: box;
+  box-orient: horizontal;
+  box-align: stretch;
+  /* Modern browsers */
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+}
+@media (max-width: 540px) {
+  div.input {
+    /* Old browsers */
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-box-align: stretch;
+    display: -moz-box;
+    -moz-box-orient: vertical;
+    -moz-box-align: stretch;
+    display: box;
+    box-orient: vertical;
+    box-align: stretch;
+    /* Modern browsers */
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+/* input_area and input_prompt must match in top border and margin for alignment */
+div.input_prompt {
+  color: #303F9F;
+  border-top: 1px solid transparent;
+}
+div.input_area > div.highlight {
+  margin: 0.4em;
+  border: none;
+  padding: 0px;
+  background-color: transparent;
+}
+div.input_area > div.highlight > pre {
+  margin: 0px;
+  border: none;
+  padding: 0px;
+  background-color: transparent;
+}
+/* The following gets added to the <head> if it is detected that the user has a
+ * monospace font with inconsistent normal/bold/italic height.  See
+ * notebookmain.js.  Such fonts will have keywords vertically offset with
+ * respect to the rest of the text.  The user should select a better font.
+ * See: https://github.com/ipython/ipython/issues/1503
+ *
+ * .CodeMirror span {
+ *      vertical-align: bottom;
+ * }
+ */
+.CodeMirror {
+  line-height: 1.21429em;
+  /* Changed from 1em to our global default */
+  font-size: 14px;
+  height: auto;
+  /* Changed to auto to autogrow */
+  background: none;
+  /* Changed from white to allow our bg to show through */
+}
+.CodeMirror-scroll {
+  /*  The CodeMirror docs are a bit fuzzy on if overflow-y should be hidden or visible.*/
+  /*  We have found that if it is visible, vertical scrollbars appear with font size changes.*/
+  overflow-y: hidden;
+  overflow-x: auto;
+}
+.CodeMirror-lines {
+  /* In CM2, this used to be 0.4em, but in CM3 it went to 4px. We need the em value because */
+  /* we have set a different line-height and want this to scale with that. */
+  /* Note that this should set vertical padding only, since CodeMirror assumes
+       that horizontal padding will be set on CodeMirror pre */
+  padding: 0.4em 0;
+}
+.CodeMirror-linenumber {
+  padding: 0 8px 0 4px;
+}
+.CodeMirror-gutters {
+  border-bottom-left-radius: 2px;
+  border-top-left-radius: 2px;
+}
+.CodeMirror pre {
+  /* In CM3 this went to 4px from 0 in CM2. This sets horizontal padding only,
+    use .CodeMirror-lines for vertical */
+  padding: 0 0.4em;
+  border: 0;
+  border-radius: 0;
+}
+.CodeMirror-cursor {
+  border-left: 1.4px solid black;
+}
+@media screen and (min-width: 2138px) and (max-width: 4319px) {
+  .CodeMirror-cursor {
+    border-left: 2px solid black;
+  }
+}
+@media screen and (min-width: 4320px) {
+  .CodeMirror-cursor {
+    border-left: 4px solid black;
+  }
+}
+/*
+
+Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiacs.Org>
+Adapted from GitHub theme
+
+*/
+.highlight-base {
+  color: #000;
+}
+.highlight-variable {
+  color: #000;
+}
+.highlight-variable-2 {
+  color: #1a1a1a;
+}
+.highlight-variable-3 {
+  color: #333333;
+}
+.highlight-string {
+  color: #BA2121;
+}
+.highlight-comment {
+  color: #408080;
+  font-style: italic;
+}
+.highlight-number {
+  color: #080;
+}
+.highlight-atom {
+  color: #88F;
+}
+.highlight-keyword {
+  color: #008000;
+  font-weight: bold;
+}
+.highlight-builtin {
+  color: #008000;
+}
+.highlight-error {
+  color: #f00;
+}
+.highlight-operator {
+  color: #AA22FF;
+  font-weight: bold;
+}
+.highlight-meta {
+  color: #AA22FF;
+}
+/* previously not defined, copying from default codemirror */
+.highlight-def {
+  color: #00f;
+}
+.highlight-string-2 {
+  color: #f50;
+}
+.highlight-qualifier {
+  color: #555;
+}
+.highlight-bracket {
+  color: #997;
+}
+.highlight-tag {
+  color: #170;
+}
+.highlight-attribute {
+  color: #00c;
+}
+.highlight-header {
+  color: blue;
+}
+.highlight-quote {
+  color: #090;
+}
+.highlight-link {
+  color: #00c;
+}
+/* apply the same style to codemirror */
+.cm-s-ipython span.cm-keyword {
+  color: #008000;
+  font-weight: bold;
+}
+.cm-s-ipython span.cm-atom {
+  color: #88F;
+}
+.cm-s-ipython span.cm-number {
+  color: #080;
+}
+.cm-s-ipython span.cm-def {
+  color: #00f;
+}
+.cm-s-ipython span.cm-variable {
+  color: #000;
+}
+.cm-s-ipython span.cm-operator {
+  color: #AA22FF;
+  font-weight: bold;
+}
+.cm-s-ipython span.cm-variable-2 {
+  color: #1a1a1a;
+}
+.cm-s-ipython span.cm-variable-3 {
+  color: #333333;
+}
+.cm-s-ipython span.cm-comment {
+  color: #408080;
+  font-style: italic;
+}
+.cm-s-ipython span.cm-string {
+  color: #BA2121;
+}
+.cm-s-ipython span.cm-string-2 {
+  color: #f50;
+}
+.cm-s-ipython span.cm-meta {
+  color: #AA22FF;
+}
+.cm-s-ipython span.cm-qualifier {
+  color: #555;
+}
+.cm-s-ipython span.cm-builtin {
+  color: #008000;
+}
+.cm-s-ipython span.cm-bracket {
+  color: #997;
+}
+.cm-s-ipython span.cm-tag {
+  color: #170;
+}
+.cm-s-ipython span.cm-attribute {
+  color: #00c;
+}
+.cm-s-ipython span.cm-header {
+  color: blue;
+}
+.cm-s-ipython span.cm-quote {
+  color: #090;
+}
+.cm-s-ipython span.cm-link {
+  color: #00c;
+}
+.cm-s-ipython span.cm-error {
+  color: #f00;
+}
+.cm-s-ipython span.cm-tab {
+  background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAMCAYAAAAkuj5RAAAAAXNSR0IArs4c6QAAAGFJREFUSMft1LsRQFAQheHPowAKoACx3IgEKtaEHujDjORSgWTH/ZOdnZOcM/sgk/kFFWY0qV8foQwS4MKBCS3qR6ixBJvElOobYAtivseIE120FaowJPN75GMu8j/LfMwNjh4HUpwg4LUAAAAASUVORK5CYII=);
+  background-position: right;
+  background-repeat: no-repeat;
+}
+div.output_wrapper {
+  /* this position must be relative to enable descendents to be absolute within it */
+  position: relative;
+  /* Old browsers */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-box-align: stretch;
+  display: -moz-box;
+  -moz-box-orient: vertical;
+  -moz-box-align: stretch;
+  display: box;
+  box-orient: vertical;
+  box-align: stretch;
+  /* Modern browsers */
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  z-index: 1;
+}
+/* class for the output area when it should be height-limited */
+div.output_scroll {
+  /* ideally, this would be max-height, but FF barfs all over that */
+  height: 24em;
+  /* FF needs this *and the wrapper* to specify full width, or it will shrinkwrap */
+  width: 100%;
+  overflow: auto;
+  border-radius: 2px;
+  -webkit-box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.8);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.8);
+  display: block;
+}
+/* output div while it is collapsed */
+div.output_collapsed {
+  margin: 0px;
+  padding: 0px;
+  /* Old browsers */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-box-align: stretch;
+  display: -moz-box;
+  -moz-box-orient: vertical;
+  -moz-box-align: stretch;
+  display: box;
+  box-orient: vertical;
+  box-align: stretch;
+  /* Modern browsers */
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+div.out_prompt_overlay {
+  height: 100%;
+  padding: 0px 0.4em;
+  position: absolute;
+  border-radius: 2px;
+}
+div.out_prompt_overlay:hover {
+  /* use inner shadow to get border that is computed the same on WebKit/FF */
+  -webkit-box-shadow: inset 0 0 1px #000;
+  box-shadow: inset 0 0 1px #000;
+  background: rgba(240, 240, 240, 0.5);
+}
+div.output_prompt {
+  color: #D84315;
+}
+/* This class is the outer container of all output sections. */
+div.output_area {
+  padding: 0px;
+  page-break-inside: avoid;
+  /* Old browsers */
+  display: -webkit-box;
+  -webkit-box-orient: horizontal;
+  -webkit-box-align: stretch;
+  display: -moz-box;
+  -moz-box-orient: horizontal;
+  -moz-box-align: stretch;
+  display: box;
+  box-orient: horizontal;
+  box-align: stretch;
+  /* Modern browsers */
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+}
+div.output_area .MathJax_Display {
+  text-align: left !important;
+}
+div.output_area 
+div.output_area 
+div.output_area img,
+div.output_area svg {
+  max-width: 100%;
+  height: auto;
+}
+div.output_area img.unconfined,
+div.output_area svg.unconfined {
+  max-width: none;
+}
+div.output_area .mglyph > img {
+  max-width: none;
+}
+/* This is needed to protect the pre formating from global settings such
+   as that of bootstrap */
+.output {
+  /* Old browsers */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-box-align: stretch;
+  display: -moz-box;
+  -moz-box-orient: vertical;
+  -moz-box-align: stretch;
+  display: box;
+  box-orient: vertical;
+  box-align: stretch;
+  /* Modern browsers */
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+@media (max-width: 540px) {
+  div.output_area {
+    /* Old browsers */
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-box-align: stretch;
+    display: -moz-box;
+    -moz-box-orient: vertical;
+    -moz-box-align: stretch;
+    display: box;
+    box-orient: vertical;
+    box-align: stretch;
+    /* Modern browsers */
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+div.output_area pre {
+  margin: 0;
+  padding: 1px 0 1px 0;
+  border: 0;
+  vertical-align: baseline;
+  color: black;
+  background-color: transparent;
+  border-radius: 0;
+}
+/* This class is for the output subarea inside the output_area and after
+   the prompt div. */
+div.output_subarea {
+  overflow-x: auto;
+  padding: 0.4em;
+  /* Old browsers */
+  -webkit-box-flex: 1;
+  -moz-box-flex: 1;
+  box-flex: 1;
+  /* Modern browsers */
+  flex: 1;
+  max-width: calc(100% - 14ex);
+}
+div.output_scroll div.output_subarea {
+  overflow-x: visible;
+}
+/* The rest of the output_* classes are for special styling of the different
+   output types */
+/* all text output has this class: */
+div.output_text {
+  text-align: left;
+  color: #000;
+  /* This has to match that of the the CodeMirror class line-height below */
+  line-height: 1.21429em;
+}
+/* stdout/stderr are 'text' as well as 'stream', but execute_result/error are *not* streams */
+div.output_stderr {
+  background: #fdd;
+  /* very light red background for stderr */
+}
+div.output_latex {
+  text-align: left;
+}
+/* Empty output_javascript divs should have no height */
+div.output_javascript:empty {
+  padding: 0;
+}
+.js-error {
+  color: darkred;
+}
+/* raw_input styles */
+div.raw_input_container {
+  line-height: 1.21429em;
+  padding-top: 5px;
+}
+pre.raw_input_prompt {
+  /* nothing needed here. */
+}
+input.raw_input {
+  font-family: monospace;
+  font-size: inherit;
+  color: inherit;
+  width: auto;
+  /* make sure input baseline aligns with prompt */
+  vertical-align: baseline;
+  /* padding + margin = 0.5em between prompt and cursor */
+  padding: 0em 0.25em;
+  margin: 0em 0.25em;
+}
+input.raw_input:focus {
+  box-shadow: none;
+}
+p.p-space {
+  margin-bottom: 10px;
+}
+div.output_unrecognized {
+  padding: 5px;
+  font-weight: bold;
+  color: red;
+}
+div.output_unrecognized a {
+  color: inherit;
+  text-decoration: none;
+}
+div.output_unrecognized a:hover {
+  color: inherit;
+  text-decoration: none;
+}
+.rendered_html {
+  color: #000;
+  /* any extras will just be numbers: */
+}
+
+
+
+.rendered_html :link {
+  text-decoration: underline;
+}
+.rendered_html :visited {
+  text-decoration: underline;
+}
+
+
+
+
+
+
+.rendered_html h1:first-child {
+  margin-top: 0.538em;
+}
+.rendered_html h2:first-child {
+  margin-top: 0.636em;
+}
+.rendered_html h3:first-child {
+  margin-top: 0.777em;
+}
+.rendered_html h4:first-child {
+  margin-top: 1em;
+}
+.rendered_html h5:first-child {
+  margin-top: 1em;
+}
+.rendered_html h6:first-child {
+  margin-top: 1em;
+}
+.rendered_html ul:not(.list-inline),
+.rendered_html ol:not(.list-inline) {
+  padding-left: 2em;
+}
+
+
+
+
+
+
+
+
+.rendered_html * + ul {
+  margin-top: 1em;
+}
+.rendered_html * + ol {
+  margin-top: 1em;
+}
+
+
+
+
+
+.rendered_html pre,
+
+
+
+
+.rendered_html tr,
+.rendered_html th,
+
+
+.rendered_html tbody tr:nth-child(odd) {
+  background: #f5f5f5;
+}
+.rendered_html tbody tr:hover {
+  background: rgba(66, 165, 245, 0.2);
+}
+.rendered_html * + table {
+  margin-top: 1em;
+}
+
+.rendered_html * + p {
+  margin-top: 1em;
+}
+
+.rendered_html * + img {
+  margin-top: 1em;
+}
+.rendered_html img,
+
+.rendered_html img.unconfined,
+
+
+.rendered_html * + .alert {
+  margin-top: 1em;
+}
+[dir="rtl"] 
+div.text_cell {
+  /* Old browsers */
+  display: -webkit-box;
+  -webkit-box-orient: horizontal;
+  -webkit-box-align: stretch;
+  display: -moz-box;
+  -moz-box-orient: horizontal;
+  -moz-box-align: stretch;
+  display: box;
+  box-orient: horizontal;
+  box-align: stretch;
+  /* Modern browsers */
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+}
+@media (max-width: 540px) {
+  div.text_cell > div.prompt {
+    display: none;
+  }
+}
+div.text_cell_render {
+  /*font-family: "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;*/
+  outline: none;
+  resize: none;
+  width: inherit;
+  border-style: none;
+  padding: 0.5em 0.5em 0.5em 0.4em;
+  color: #000;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+}
+a.anchor-link:link {
+  text-decoration: none;
+  padding: 0px 20px;
+  visibility: hidden;
+}
+h1:hover .anchor-link,
+h2:hover .anchor-link,
+h3:hover .anchor-link,
+h4:hover .anchor-link,
+h5:hover .anchor-link,
+h6:hover .anchor-link {
+  visibility: visible;
+}
+.text_cell.rendered .input_area {
+  display: none;
+}
+.text_cell.rendered 
+.text_cell.rendered .rendered_html tr,
+.text_cell.rendered .rendered_html th,
+.text_cell.rendered 
+.text_cell.unrendered .text_cell_render {
+  display: none;
+}
+.text_cell .dropzone .input_area {
+  border: 2px dashed #bababa;
+  margin: -1px;
+}
+.cm-header-1,
+.cm-header-2,
+.cm-header-3,
+.cm-header-4,
+.cm-header-5,
+.cm-header-6 {
+  font-weight: bold;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+.cm-header-1 {
+  font-size: 185.7%;
+}
+.cm-header-2 {
+  font-size: 157.1%;
+}
+.cm-header-3 {
+  font-size: 128.6%;
+}
+.cm-header-4 {
+  font-size: 110%;
+}
+.cm-header-5 {
+  font-size: 100%;
+  font-style: italic;
+}
+.cm-header-6 {
+  font-size: 100%;
+  font-style: italic;
+}
+</style>
+<style type="text/css">.highlight .hll { background-color: #ffffcc }
+.highlight  { background: #f8f8f8; }
+.highlight .c { color: #408080; font-style: italic } /* Comment */
+.highlight .err { border: 1px solid #FF0000 } /* Error */
+.highlight .k { color: #008000; font-weight: bold } /* Keyword */
+.highlight .o { color: #666666 } /* Operator */
+.highlight .ch { color: #408080; font-style: italic } /* Comment.Hashbang */
+.highlight .cm { color: #408080; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #BC7A00 } /* Comment.Preproc */
+.highlight .cpf { color: #408080; font-style: italic } /* Comment.PreprocFile */
+.highlight .c1 { color: #408080; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #408080; font-style: italic } /* Comment.Special */
+.highlight .gd { color: #A00000 } /* Generic.Deleted */
+.highlight .ge { font-style: italic } /* Generic.Emph */
+.highlight .gr { color: #FF0000 } /* Generic.Error */
+.highlight .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight .gi { color: #00A000 } /* Generic.Inserted */
+.highlight .go { color: #888888 } /* Generic.Output */
+.highlight .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
+.highlight .gs { font-weight: bold } /* Generic.Strong */
+.highlight .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight .gt { color: #0044DD } /* Generic.Traceback */
+.highlight .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
+.highlight .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
+.highlight .kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
+.highlight .kp { color: #008000 } /* Keyword.Pseudo */
+.highlight .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
+.highlight .kt { color: #B00040 } /* Keyword.Type */
+.highlight .m { color: #666666 } /* Literal.Number */
+.highlight .s { color: #BA2121 } /* Literal.String */
+.highlight .na { color: #7D9029 } /* Name.Attribute */
+.highlight .nb { color: #008000 } /* Name.Builtin */
+.highlight .nc { color: #0000FF; font-weight: bold } /* Name.Class */
+.highlight .no { color: #880000 } /* Name.Constant */
+.highlight .nd { color: #AA22FF } /* Name.Decorator */
+.highlight .ni { color: #999999; font-weight: bold } /* Name.Entity */
+.highlight .ne { color: #D2413A; font-weight: bold } /* Name.Exception */
+.highlight .nf { color: #0000FF } /* Name.Function */
+.highlight .nl { color: #A0A000 } /* Name.Label */
+.highlight .nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
+.highlight .nt { color: #008000; font-weight: bold } /* Name.Tag */
+.highlight .nv { color: #19177C } /* Name.Variable */
+.highlight .ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
+.highlight .w { color: #bbbbbb } /* Text.Whitespace */
+.highlight .mb { color: #666666 } /* Literal.Number.Bin */
+.highlight .mf { color: #666666 } /* Literal.Number.Float */
+.highlight .mh { color: #666666 } /* Literal.Number.Hex */
+.highlight .mi { color: #666666 } /* Literal.Number.Integer */
+.highlight .mo { color: #666666 } /* Literal.Number.Oct */
+.highlight .sa { color: #BA2121 } /* Literal.String.Affix */
+.highlight .sb { color: #BA2121 } /* Literal.String.Backtick */
+.highlight .sc { color: #BA2121 } /* Literal.String.Char */
+.highlight .dl { color: #BA2121 } /* Literal.String.Delimiter */
+.highlight .sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
+.highlight .s2 { color: #BA2121 } /* Literal.String.Double */
+.highlight .se { color: #BB6622; font-weight: bold } /* Literal.String.Escape */
+.highlight .sh { color: #BA2121 } /* Literal.String.Heredoc */
+.highlight .si { color: #BB6688; font-weight: bold } /* Literal.String.Interpol */
+.highlight .sx { color: #008000 } /* Literal.String.Other */
+.highlight .sr { color: #BB6688 } /* Literal.String.Regex */
+.highlight .s1 { color: #BA2121 } /* Literal.String.Single */
+.highlight .ss { color: #19177C } /* Literal.String.Symbol */
+.highlight .bp { color: #008000 } /* Name.Builtin.Pseudo */
+.highlight .fm { color: #0000FF } /* Name.Function.Magic */
+.highlight .vc { color: #19177C } /* Name.Variable.Class */
+.highlight .vg { color: #19177C } /* Name.Variable.Global */
+.highlight .vi { color: #19177C } /* Name.Variable.Instance */
+.highlight .vm { color: #19177C } /* Name.Variable.Magic */
+.highlight .il { color: #666666 } /* Literal.Number.Integer.Long */</style>
+<style type="text/css">
+/* Temporary definitions which will become obsolete with Notebook release 5.0 */
+.ansi-black-fg { color: #3E424D; }
+.ansi-black-bg { background-color: #3E424D; }
+.ansi-black-intense-fg { color: #282C36; }
+.ansi-black-intense-bg { background-color: #282C36; }
+.ansi-red-fg { color: #E75C58; }
+.ansi-red-bg { background-color: #E75C58; }
+.ansi-red-intense-fg { color: #B22B31; }
+.ansi-red-intense-bg { background-color: #B22B31; }
+.ansi-green-fg { color: #00A250; }
+.ansi-green-bg { background-color: #00A250; }
+.ansi-green-intense-fg { color: #007427; }
+.ansi-green-intense-bg { background-color: #007427; }
+.ansi-yellow-fg { color: #DDB62B; }
+.ansi-yellow-bg { background-color: #DDB62B; }
+.ansi-yellow-intense-fg { color: #B27D12; }
+.ansi-yellow-intense-bg { background-color: #B27D12; }
+.ansi-blue-fg { color: #208FFB; }
+.ansi-blue-bg { background-color: #208FFB; }
+.ansi-blue-intense-fg { color: #0065CA; }
+.ansi-blue-intense-bg { background-color: #0065CA; }
+.ansi-magenta-fg { color: #D160C4; }
+.ansi-magenta-bg { background-color: #D160C4; }
+.ansi-magenta-intense-fg { color: #A03196; }
+.ansi-magenta-intense-bg { background-color: #A03196; }
+.ansi-cyan-fg { color: #60C6C8; }
+.ansi-cyan-bg { background-color: #60C6C8; }
+.ansi-cyan-intense-fg { color: #258F8F; }
+.ansi-cyan-intense-bg { background-color: #258F8F; }
+.ansi-white-fg { color: #C5C1B4; }
+.ansi-white-bg { background-color: #C5C1B4; }
+.ansi-white-intense-fg { color: #A1A6B2; }
+.ansi-white-intense-bg { background-color: #A1A6B2; }
+
+.ansi-bold { font-weight: bold; }
+</style>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Filtrado-de-correos-spam">Filtrado de correos spam<a class="anchor-link" href="#Filtrado-de-correos-spam">&#182;</a></h2><p>En esta ocasión vamos a ver una solución al famoso problema de clasificación de correos <strong>spam</strong>/<strong>ham</strong> para el consecuente filtrado de los no deseados. Es un tipo de ejercicio en el que se requiere hacer uso de técnicas de <strong>procesamiento de lenguaje natural</strong>, para generar un conjunto de datos que puedan ser introducidos como entrada al modelo clasificador entrenado. A lo largo de este <em>notebook</em> se irá explicando paso por paso las operaciones realizadas sobre el conjunto de correos original.</p>
+<h2 id="Datos">Datos<a class="anchor-link" href="#Datos">&#182;</a></h2><p>La base de datos esta formada por un total de 3052 correos electrónicos de entre los cuales 2551 están etiquetados como <em>ham</em> y 501 como <em>spam</em>. Este conjunto de datos puede encontrarse en la página oficial de Apache SpamAssassin, siguiendo el siguiente enlace: <a href="http://spamassassin.apache.org/old/publiccorpus/">http://spamassassin.apache.org/old/publiccorpus/</a></p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[1]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">email</span>
+<span class="kn">import</span> <span class="nn">email.policy</span>
+<span class="kn">from</span> <span class="nn">bs4</span> <span class="k">import</span> <span class="n">BeautifulSoup</span>
+<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="k">import</span> <span class="n">train_test_split</span>
+<span class="kn">import</span> <span class="nn">spacy</span>
+<span class="kn">import</span> <span class="nn">urlextract</span>    
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">scipy.sparse</span> <span class="k">import</span> <span class="n">csr_matrix</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">Counter</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="n">sns</span><span class="o">.</span><span class="n">set_style</span><span class="p">(</span><span class="s1">&#39;dark&#39;</span><span class="p">)</span>
+<span class="o">%</span><span class="k">matplotlib</span> inline
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[2]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">spam_path</span><span class="o">=</span><span class="s1">&#39;datasets/mails/spam&#39;</span>
+<span class="n">ham_path</span><span class="o">=</span><span class="s1">&#39;datasets/mails/ham&#39;</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Cargamos los correos previamente descargados de forma separada en dos carpetas distintas. Para ello hacemos uso de la libreria <strong>email</strong> (la cual se irá utilizando durante toda la resolución del problema) de Python, con la que es posible hacer un parseo por bytes de los mismos.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[3]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">load_mails</span><span class="p">(</span><span class="n">spam_path</span><span class="p">,</span> <span class="n">ham_path</span><span class="p">):</span>
+    <span class="n">spam_list</span><span class="o">=</span><span class="p">[]</span>
+    <span class="n">ham_list</span><span class="o">=</span><span class="p">[]</span>
+    <span class="k">for</span> <span class="n">mail_name</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">spam_path</span><span class="p">):</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">spam_path</span><span class="o">+</span><span class="s1">&#39;/&#39;</span><span class="o">+</span><span class="n">mail_name</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+            <span class="n">spam_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">email</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">BytesParser</span><span class="p">(</span><span class="n">policy</span><span class="o">=</span><span class="n">email</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">default</span><span class="p">)</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">file</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">mail_name</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">ham_path</span><span class="p">):</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">ham_path</span><span class="o">+</span><span class="s1">&#39;/&#39;</span><span class="o">+</span><span class="n">mail_name</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+            <span class="n">ham_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">email</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">BytesParser</span><span class="p">(</span><span class="n">policy</span><span class="o">=</span><span class="n">email</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">default</span><span class="p">)</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">file</span><span class="p">))</span>  
+    <span class="k">return</span> <span class="p">(</span><span class="n">spam_list</span><span class="p">,</span><span class="n">ham_list</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[4]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">spam_list</span><span class="p">,</span> <span class="n">ham_list</span><span class="o">=</span><span class="n">load_mails</span><span class="p">(</span><span class="n">spam_path</span><span class="p">,</span><span class="n">ham_path</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Antes de nada generamos los <em>numpy array</em> de correos y etiquetas, que utilizamos para separar nuestro set de entrenamiento y set de testeo</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[5]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">X</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">spam_list</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ham_list</span><span class="p">)),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">spam_list</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ham_list</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)))</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[6]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt output_prompt">Out[6]:</div>
+
+
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>((3052,), (3052,))</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[7]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">X_train</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_test</span><span class="o">=</span><span class="n">train_test_split</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[8]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">X_train</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">y_train</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">X_test</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">y_test</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt output_prompt">Out[8]:</div>
+
+
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>((2441,), (2441,), (611,), (611,))</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Mediante esta línea de código se carga el modelo (de lengua inglesa) perteneciente a la librería <strong>Spacy</strong>.</p>
+<p>Spacy es el framework de procesamiento de lenguaje natural más empleado junto con <strong>NLTK</strong>(<em>Natural Language Toolkit</em>). En esta ocasión lo utilizaremos para hacer:</p>
+<ul>
+<li><strong>tokenización</strong> de los correos: separar las oraciones en palabras y símbolos.</li>
+<li><strong>lematización</strong>: obtener el lema de cada palabra, esto es, la palabra representativa de todas las formas flexionadas de una palabra.</li>
+<li><strong>etiquetado gramatical</strong>: asignar a cada una de las palabras de un texto su categoría gramatical</li>
+<li><strong>reconocimiento del tipo de entidad</strong>: asignar a que se corresponde cada sustantivo de la oración.</li>
+</ul>
+<p>Haremos uso por otro lado de las <strong>expresiones regulares</strong> (librería <strong>re</strong>) para hacer ciertas búsquedas de secuencias de caracteres en los correos, así como sustituciones.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[9]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">tokenizer</span><span class="o">=</span><span class="n">spacy</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;en_core_web_sm&#39;</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>A continuación creamos la función que se encarga de procesar el <strong>contenido</strong> de cada correo electrónico de la base de datos. El objetivo es hacer una normalización y limpieza de lo mismos, para no encontrarnos más adelante con demasiadas columnas en el <em>dataframe</em>.</p>
+<ol>
+<li>Comenzamos haciendo un <em>strip</em> del contenido.</li>
+<li>A través de la librería <strong>urlextract</strong> buscamos todas aquellas direcciones y las sustituimos por <strong>'url_link'</strong>.</li>
+<li>Generamos una expresión regular para encontrar cualquier dirección de correo electronico, de entre todos los formatos admitidos, y las sustituimos por <strong>'mail_dir'</strong>.</li>
+<li><p>Tokenizamos el contenido del mensaje y, de todos los sustantivos, sustituimos los que presenten las siguientes etiquetas:</p>
+<ul>
+<li>ORG: organizaciones</li>
+<li>GPE: situaciones geográficas</li>
+<li>PERSON: personas</li>
+</ul>
+</li>
+<li><ol>
+<li><ol>
+<li><ol>
+<li>y 9. Sustituimo cada una de las expresiones que se repitan más de dos veces, por la misma expresión repetida dos veces.</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[10]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">preprocess_mails</span><span class="p">(</span><span class="n">mail_content</span><span class="p">):</span>
+    <span class="c1">#1.- Strip</span>
+    <span class="n">mail_copy_content</span><span class="o">=</span><span class="n">mail_content</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    
+    <span class="c1">#2.-URLS</span>
+    <span class="n">extractor</span><span class="o">=</span><span class="n">urlextract</span><span class="o">.</span><span class="n">URLExtract</span><span class="p">()</span>
+    <span class="n">urls</span><span class="o">=</span><span class="n">extractor</span><span class="o">.</span><span class="n">find_urls</span><span class="p">(</span><span class="n">mail_copy_content</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">url</span> <span class="ow">in</span> <span class="n">urls</span><span class="p">:</span>
+        <span class="n">mail_copy_content</span><span class="o">=</span><span class="n">mail_copy_content</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="s1">&#39;url_link&#39;</span><span class="p">)</span>
+   
+    <span class="c1">#3.-CORREOS</span>
+    <span class="n">mail_copy_content</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;\w+(\.\w+|-\w+)*@\w+\.\w+(\.\w+)*&#39;</span><span class="p">,</span> <span class="s1">&#39;mail_dir&#39;</span><span class="p">,</span><span class="n">mail_copy_content</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+
+    <span class="c1">#4.- person, org , gpe</span>
+    <span class="n">tokens</span><span class="o">=</span><span class="n">tokenizer</span><span class="p">(</span><span class="n">mail_copy_content</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">ent</span> <span class="ow">in</span> <span class="n">tokens</span><span class="o">.</span><span class="n">ents</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">ent</span><span class="o">.</span><span class="n">label_</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;GPE&#39;</span><span class="p">,</span><span class="s1">&#39;ORG&#39;</span><span class="p">,</span> <span class="s1">&#39;PERSON&#39;</span><span class="p">])</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">ent</span><span class="p">)</span><span class="o">!=</span><span class="s1">&#39;url_link&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">ent</span><span class="p">)</span><span class="o">!=</span><span class="s1">&#39;&gt;&#39;</span><span class="p">):</span>
+            <span class="n">mail_copy_content</span><span class="o">=</span><span class="n">mail_copy_content</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">ent</span><span class="p">),</span> <span class="n">ent</span><span class="o">.</span><span class="n">label_</span><span class="p">)</span>
+   
+    <span class="c1">#5 &#39;  &#39;</span>
+    <span class="n">mail_copy_content</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39; ( )+&#39;</span><span class="p">,</span> <span class="s1">&#39;  &#39;</span><span class="p">,</span> <span class="n">mail_copy_content</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+
+    <span class="c1">#6 &#39;\n\n&#39;</span>
+    <span class="n">mail_copy_content</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">(</span><span class="se">\n</span><span class="s1">)+&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">mail_copy_content</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+   
+    <span class="mi">7</span><span class="c1"># &#39;==&#39;</span>
+    <span class="n">mail_copy_content</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;=(=)+&#39;</span><span class="p">,</span> <span class="s1">&#39;==&#39;</span><span class="p">,</span> <span class="n">mail_copy_content</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+
+    <span class="c1">#8 &#39;\xa0\xa0&#39;</span>
+    <span class="n">mail_copy_content</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\xa0</span><span class="s1">(</span><span class="se">\xa0</span><span class="s1">)+&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\xa0\xa0</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">mail_copy_content</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+ 
+    <span class="c1">#9 &#39;--&#39;</span>
+    <span class="n">mail_copy_content</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;-(-)+&#39;</span><span class="p">,</span> <span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">mail_copy_content</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">mail_copy_content</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>A continuación definimos la función que se encarga de obtener la matriz dispersa del contenido de cada mensaje.</p>
+<p>Para ello tenemos que diferenciar en primer lugar el tipo de mensaje que es, ya que no todos presentan la misma estructura. En caso de tratarse de un correo <em>multipart</em> habrá que ir recorriendo los diferentes subapartados.</p>
+<p>Mediante la librería <strong>BeautifulSoup</strong> hacemos un parseo de aquellos mensajes que presenten estructuras en formato html, para deshacernos de sus respectivas etiquetas, ya que no las queremos. Del resultado de esta operación realizamos el preprocesamiento y posteriormente la tokenización.</p>
+<p>Para cada <strong>token</strong> (si viene recogido en el modelo previamente cargado), añadimos su lema o su etiquetado en la lista <strong>doc</strong>.</p>
+<p>La lista <strong>docs</strong> contiene el cada una de las listas <strong>doc</strong> correspondiente a cada mensaje. Esta lista la utilizamos en la función <strong>csr_matrix</strong> de la librería <strong>Scipy</strong> para generar finalmente la matriz dispera.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[52]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">get_content_sparse_matrix</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+    <span class="n">multipart_array</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;multipart/signed&#39;</span><span class="p">,</span> <span class="s1">&#39;multipart/alternative&#39;</span><span class="p">,</span><span class="s1">&#39;multipart/mixed&#39;</span><span class="p">,</span> <span class="s1">&#39;multipart/related&#39;</span><span class="p">,</span> <span class="s1">&#39;multipart/report&#39;</span><span class="p">]</span>
+    <span class="n">docs</span><span class="o">=</span><span class="p">[]</span>
+    <span class="n">begins</span><span class="o">=</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">email</span> <span class="ow">in</span> <span class="n">X</span><span class="p">:</span>
+        <span class="n">doc</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">email</span><span class="o">.</span><span class="n">get_content_type</span><span class="p">()</span> <span class="ow">in</span> <span class="n">multipart_array</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">email</span><span class="o">.</span><span class="n">walk</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">part</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                        <span class="n">tokens</span><span class="o">=</span><span class="n">tokenizer</span><span class="p">(</span><span class="n">preprocess_mails</span><span class="p">(</span><span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">get_payload</span><span class="p">(),</span> <span class="s1">&#39;html.parser&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">get_text</span><span class="p">()))</span>
+                        <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="ow">not</span> <span class="n">token</span><span class="o">.</span><span class="n">is_stop</span><span class="p">:</span>
+                                <span class="k">if</span> <span class="n">token</span><span class="o">.</span><span class="n">pos_</span><span class="o">!=</span><span class="s1">&#39;PROPN&#39;</span><span class="p">:</span>
+                                    <span class="n">doc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">token</span><span class="o">.</span><span class="n">lemma_</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">ent</span> <span class="ow">in</span> <span class="n">tokens</span><span class="o">.</span><span class="n">ents</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">ent</span><span class="o">.</span><span class="n">label_</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;GPE&#39;</span><span class="p">,</span><span class="s1">&#39;ORG&#39;</span><span class="p">,</span> <span class="s1">&#39;PERSON&#39;</span><span class="p">]:</span>
+                                <span class="n">doc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ent</span><span class="o">.</span><span class="n">label_</span><span class="p">)</span>
+                <span class="n">docs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+                            
+                   
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">tokens</span><span class="o">=</span><span class="n">tokenizer</span><span class="p">(</span><span class="n">preprocess_mails</span><span class="p">(</span><span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">email</span><span class="o">.</span><span class="n">get_payload</span><span class="p">(),</span> <span class="s1">&#39;html.parser&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">get_text</span><span class="p">()))</span>
+                <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">token</span><span class="o">.</span><span class="n">is_stop</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">token</span><span class="o">.</span><span class="n">pos_</span><span class="o">!=</span><span class="s1">&#39;PROPN&#39;</span><span class="p">:</span>
+                            <span class="n">doc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">token</span><span class="o">.</span><span class="n">lemma_</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">ent</span> <span class="ow">in</span> <span class="n">tokens</span><span class="o">.</span><span class="n">ents</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">ent</span><span class="o">.</span><span class="n">label_</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;GPE&#39;</span><span class="p">,</span><span class="s1">&#39;ORG&#39;</span><span class="p">,</span> <span class="s1">&#39;PERSON&#39;</span><span class="p">]:</span>
+                        <span class="n">doc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ent</span><span class="o">.</span><span class="n">label_</span><span class="p">)</span>
+                <span class="n">docs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+
+
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">except</span> <span class="ne">LookupError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+    
+    <span class="n">indptr</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">indices</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">vocabulary</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">docs</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">vocabulary</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">term</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">vocabulary</span><span class="p">))</span>
+            <span class="n">indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">indptr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">indices</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;Elapsed time: {int(time.time()-begins)} seconds&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">csr_matrix</span><span class="p">((</span><span class="n">data</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">indptr</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">toarray</span><span class="p">(),</span> <span class="p">[</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">vocabulary</span><span class="o">.</span><span class="n">keys</span><span class="p">()],</span> <span class="n">docs</span><span class="p">)</span>
+                                         
+                                         
+    
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[12]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">content_sparse_matrix</span><span class="p">,</span> <span class="n">content_columns</span><span class="p">,</span> <span class="n">docs</span><span class="o">=</span><span class="n">get_content_sparse_matrix</span><span class="p">(</span><span class="n">X_train</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>/home/ignacio/MLbook/env_ml/lib/python3.6/site-packages/bs4/__init__.py:389: UserWarning: &#34;http://www.post-gazette.com/columnists/20020905brian5.asp
+
+
+
+&#34; looks like a URL. Beautiful Soup is not an HTTP client. You should probably use an HTTP client like requests to get the document behind the URL, and feed that document to Beautiful Soup.
+  &#39; that document to Beautiful Soup.&#39; % decoded_markup
+</pre>
+</div>
+</div>
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>Elapsed time: 230 seconds
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Generamos el <strong>dataframe</strong> correspondiente a la matriz previamente obtenida.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[13]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">content_df</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">content_sparse_matrix</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">content_columns</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[14]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">content_df</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt output_prompt">Out[14]:</div>
+
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>\n</th>
+      <th>\n\n</th>
+      <th>lowest</th>
+      <th>rate</th>
+      <th>45</th>
+      <th>year</th>
+      <th>-</th>
+      <th>fill</th>
+      <th>short</th>
+      <th>application</th>
+      <th>...</th>
+      <th>submarine</th>
+      <th>inertial</th>
+      <th>submerge</th>
+      <th>seismic</th>
+      <th>marine</th>
+      <th>magnetometer</th>
+      <th>declassify</th>
+      <th>hazily</th>
+      <th>geophysicist</th>
+      <th>quake</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>20</td>
+      <td>11</td>
+      <td>1</td>
+      <td>1</td>
+      <td>1</td>
+      <td>1</td>
+      <td>5</td>
+      <td>1</td>
+      <td>3</td>
+      <td>3</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>2</td>
+      <td>2</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>60</td>
+      <td>7</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>14</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>3</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>3</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>31</td>
+      <td>6</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>4</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+  </tbody>
+</table>
+<p>5 rows × 20078 columns</p>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Hacemos de nuevo la función para obtener la matriz dispersa, pero esta vez para el asunto del mensaje y generamos su correspondiente <em>dataframe</em>:</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[15]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">get_subject_sparse_matrix</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+    <span class="n">docs</span><span class="o">=</span><span class="p">[]</span>
+    <span class="n">begins</span><span class="o">=</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">email</span> <span class="ow">in</span> <span class="n">X</span><span class="p">:</span>
+        <span class="n">doc</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">tokens</span><span class="o">=</span><span class="n">tokenizer</span><span class="p">(</span><span class="n">preprocess_mails</span><span class="p">(</span><span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">email</span><span class="p">[</span><span class="s1">&#39;subject&#39;</span><span class="p">],</span> <span class="s1">&#39;html.parser&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">get_text</span><span class="p">()))</span>
+            <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">token</span><span class="o">.</span><span class="n">is_stop</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">token</span><span class="o">.</span><span class="n">pos_</span><span class="o">!=</span><span class="s1">&#39;PROPN&#39;</span><span class="p">:</span>
+                        <span class="n">doc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">token</span><span class="o">.</span><span class="n">lemma_</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">ent</span> <span class="ow">in</span> <span class="n">tokens</span><span class="o">.</span><span class="n">ents</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">ent</span><span class="o">.</span><span class="n">label_</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;GPE&#39;</span><span class="p">,</span><span class="s1">&#39;ORG&#39;</span><span class="p">,</span> <span class="s1">&#39;PERSON&#39;</span><span class="p">]:</span>
+                    <span class="n">doc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ent</span><span class="o">.</span><span class="n">label_</span><span class="p">)</span>
+            <span class="n">docs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+            
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">except</span> <span class="ne">LookupError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+    
+    <span class="n">indptr</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">indices</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">vocabulary</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">docs</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">vocabulary</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">term</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">vocabulary</span><span class="p">))</span>
+            <span class="n">indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">indptr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">indices</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;Elapsed time: {int(time.time()-begins)} seconds&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">csr_matrix</span><span class="p">((</span><span class="n">data</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">indptr</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">toarray</span><span class="p">(),</span> <span class="p">[</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">vocabulary</span><span class="o">.</span><span class="n">keys</span><span class="p">()],</span> <span class="n">docs</span><span class="p">)</span>
+                                         
+                                         
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[16]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">subject_sparse_matrix</span><span class="p">,</span> <span class="n">subject_columns</span><span class="p">,</span> <span class="n">docs</span><span class="o">=</span><span class="n">get_subject_sparse_matrix</span><span class="p">(</span><span class="n">X_train</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>/home/ignacio/MLbook/env_ml/lib/python3.6/site-packages/bs4/__init__.py:389: UserWarning: &#34;http://apt.nixia.no/&#34; looks like a URL. Beautiful Soup is not an HTTP client. You should probably use an HTTP client like requests to get the document behind the URL, and feed that document to Beautiful Soup.
+  &#39; that document to Beautiful Soup.&#39; % decoded_markup
+/home/ignacio/MLbook/env_ml/lib/python3.6/site-packages/bs4/__init__.py:389: UserWarning: &#34;http://www.efi.ie/&#34; looks like a URL. Beautiful Soup is not an HTTP client. You should probably use an HTTP client like requests to get the document behind the URL, and feed that document to Beautiful Soup.
+  &#39; that document to Beautiful Soup.&#39; % decoded_markup
+</pre>
+</div>
+</div>
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>Elapsed time: 80 seconds
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[17]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">subject_columns</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">+</span><span class="s1">&#39;_subj&#39;</span> <span class="p">,</span> <span class="n">subject_columns</span><span class="p">))</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[18]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">subject_df</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">subject_sparse_matrix</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">subject_columns</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[19]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">subject_df</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt output_prompt">Out[19]:</div>
+
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>let_subj</th>
+      <th>know_subj</th>
+      <th>think!32482_subj</th>
+      <th>[_subj</th>
+      <th>]_subj</th>
+      <th>spambaye_subj</th>
+      <th>package_subj</th>
+      <th>?_subj</th>
+      <th>:_subj</th>
+      <th>ignore_subj</th>
+      <th>...</th>
+      <th>spectacular_subj</th>
+      <th>retreat_subj</th>
+      <th>goodz_subj</th>
+      <th>8simugq_subj</th>
+      <th>handle_subj</th>
+      <th>allow_subj</th>
+      <th>arbitrary_subj</th>
+      <th>execute_subj</th>
+      <th>plate_subj</th>
+      <th>tectonic_subj</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>1</td>
+      <td>1</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1</td>
+      <td>1</td>
+      <td>1</td>
+      <td>1</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1</td>
+      <td>1</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1</td>
+      <td>0</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+  </tbody>
+</table>
+<p>5 rows × 2219 columns</p>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Vamos a estudiar la distribución de la variable <strong>'tipo de mensaje'</strong> a ver si sacamos algún valor de la ella:</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[20]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">get_content_type_array</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+    <span class="n">content_types</span><span class="o">=</span><span class="p">[]</span>
+    <span class="k">for</span> <span class="n">email</span> <span class="ow">in</span> <span class="n">X</span><span class="p">:</span>
+        <span class="n">content_types</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">email</span><span class="o">.</span><span class="n">get_content_type</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">content_types</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[21]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">content_type_array</span><span class="o">=</span><span class="n">get_content_type_array</span><span class="p">(</span><span class="n">X_train</span><span class="p">)</span>
+<span class="n">X_train_w_ct</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">c_</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">content_type_array</span><span class="p">),</span> <span class="n">y_train</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">)],</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;content_type&#39;</span><span class="p">,</span> <span class="s1">&#39;target&#39;</span><span class="p">])</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[22]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">X_train_w_ct</span><span class="p">[</span><span class="s1">&#39;content_type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">())</span>
+<span class="n">figure</span> <span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+<span class="n">g1</span><span class="o">=</span><span class="n">sns</span><span class="o">.</span><span class="n">countplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s1">&#39;content_type&#39;</span><span class="p">,</span> <span class="n">hue</span><span class="o">=</span><span class="s1">&#39;target&#39;</span><span class="p">,</span><span class="n">data</span><span class="o">=</span><span class="n">X_train_w_ct</span><span class="p">)</span>
+<span class="n">g1</span><span class="o">.</span><span class="n">legend</span><span class="p">([</span> <span class="s1">&#39;ham&#39;</span><span class="p">,</span><span class="s1">&#39;spam&#39;</span><span class="p">],</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;upper right&#39;</span><span class="p">);</span>
+<span class="n">g1</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">);</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>text/plain               2138
+text/html                 146
+multipart/signed           65
+multipart/alternative      44
+multipart/mixed            40
+multipart/related           6
+multipart/report            2
+Name: content_type, dtype: int64
+</pre>
+</div>
+</div>
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+
+<div class="output_png output_subarea ">
+<img src="data:image/png;base64,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
+"
+>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Vemos que efectivamente, esta variable puede sernos de gran ayudar para la tarea de clasificación, entonces la añadimos al <em>dataframe</em> final de los datos de entrenamiento.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[23]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">content_type_df</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">get_dummies</span><span class="p">(</span><span class="n">content_type_array</span><span class="p">,</span> <span class="n">drop_first</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[24]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">X_train_pd</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">content_df</span><span class="p">,</span> <span class="n">subject_df</span><span class="p">,</span><span class="n">content_type_df</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">y_train_pd</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">y_train</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;target&#39;</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[25]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">X_train_pd</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt output_prompt">Out[25]:</div>
+
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>\n</th>
+      <th>\n\n</th>
+      <th>lowest</th>
+      <th>rate</th>
+      <th>45</th>
+      <th>year</th>
+      <th>-</th>
+      <th>fill</th>
+      <th>short</th>
+      <th>application</th>
+      <th>...</th>
+      <th>arbitrary_subj</th>
+      <th>execute_subj</th>
+      <th>plate_subj</th>
+      <th>tectonic_subj</th>
+      <th>multipart/mixed</th>
+      <th>multipart/related</th>
+      <th>multipart/report</th>
+      <th>multipart/signed</th>
+      <th>text/html</th>
+      <th>text/plain</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>20</td>
+      <td>11</td>
+      <td>1</td>
+      <td>1</td>
+      <td>1</td>
+      <td>1</td>
+      <td>5</td>
+      <td>1</td>
+      <td>3</td>
+      <td>3</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>2</td>
+      <td>2</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>60</td>
+      <td>7</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>14</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>3</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>3</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>31</td>
+      <td>6</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>4</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1</td>
+    </tr>
+  </tbody>
+</table>
+<p>5 rows × 22303 columns</p>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Ha llegado el momento de generar nuestro modelo clasificador. Usaremos una regresión logística, la cual vamos a ajustar a traves de una malla de validación cruzada randomizada.</p>
+<p>Posteriormente estudiamos los resultados y vemos como han ido las cosas:</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[26]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">sklearn.linear_model</span> <span class="k">import</span> <span class="n">LogisticRegression</span>
+<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="k">import</span> <span class="n">RandomizedSearchCV</span>
+<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="k">import</span> <span class="n">expon</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[27]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">log_clf</span> <span class="o">=</span> <span class="n">LogisticRegression</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="s2">&quot;liblinear&quot;</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+<span class="n">param_distributions</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;C&#39;</span><span class="p">:</span> <span class="n">expon</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="s1">&#39;tol&#39;</span><span class="p">:</span><span class="n">expon</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="s1">&#39;max_iter&#39;</span><span class="p">:[</span><span class="mi">100</span><span class="p">,</span><span class="mi">150</span><span class="p">,</span><span class="mi">200</span><span class="p">]}</span>
+<span class="n">randomized_search</span><span class="o">=</span><span class="n">RandomizedSearchCV</span><span class="p">(</span><span class="n">log_clf</span><span class="p">,</span> <span class="n">param_distributions</span><span class="o">=</span><span class="n">param_distributions</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">scoring</span><span class="o">=</span><span class="s1">&#39;accuracy&#39;</span><span class="p">,</span> <span class="n">n_iter</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[28]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">randomized_search</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train_pd</span><span class="p">,</span> <span class="n">y_train_pd</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt output_prompt">Out[28]:</div>
+
+
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>RandomizedSearchCV(cv=5, error_score=&#39;raise-deprecating&#39;,
+                   estimator=LogisticRegression(C=1.0, class_weight=None,
+                                                dual=False, fit_intercept=True,
+                                                intercept_scaling=1,
+                                                l1_ratio=None, max_iter=100,
+                                                multi_class=&#39;warn&#39;, n_jobs=None,
+                                                penalty=&#39;l2&#39;, random_state=42,
+                                                solver=&#39;liblinear&#39;, tol=0.0001,
+                                                verbose=0, warm_start=False),
+                   iid=&#39;warn&#39;, n_iter=200, n_jobs=-1,
+                   param_distributions={&#39;C&#39;: &lt;scipy.stats._distn_infrastructure.rv_frozen object at 0x7f0c6ce246d8&gt;,
+                                        &#39;max_iter&#39;: [100, 150, 200],
+                                        &#39;tol&#39;: &lt;scipy.stats._distn_infrastructure.rv_frozen object at 0x7f0c6ce24940&gt;},
+                   pre_dispatch=&#39;2*n_jobs&#39;, random_state=None, refit=True,
+                   return_train_score=False, scoring=&#39;accuracy&#39;, verbose=0)</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[29]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">cv_results_df</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">randomized_search</span><span class="o">.</span><span class="n">cv_results_</span><span class="p">)</span>
+<span class="n">cv_results_df</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt output_prompt">Out[29]:</div>
+
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>mean_fit_time</th>
+      <th>std_fit_time</th>
+      <th>mean_score_time</th>
+      <th>std_score_time</th>
+      <th>param_C</th>
+      <th>param_max_iter</th>
+      <th>param_tol</th>
+      <th>params</th>
+      <th>split0_test_score</th>
+      <th>split1_test_score</th>
+      <th>split2_test_score</th>
+      <th>split3_test_score</th>
+      <th>split4_test_score</th>
+      <th>mean_test_score</th>
+      <th>std_test_score</th>
+      <th>rank_test_score</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>2.417453</td>
+      <td>0.034021</td>
+      <td>0.091958</td>
+      <td>0.012679</td>
+      <td>0.00340559</td>
+      <td>100</td>
+      <td>0.427638</td>
+      <td>{'C': 0.003405585290268786, 'max_iter': 100, '...</td>
+      <td>0.910020</td>
+      <td>0.920245</td>
+      <td>0.932377</td>
+      <td>0.936475</td>
+      <td>0.924025</td>
+      <td>0.924621</td>
+      <td>0.009313</td>
+      <td>111</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>2.538855</td>
+      <td>0.155416</td>
+      <td>0.110433</td>
+      <td>0.018707</td>
+      <td>1.22058</td>
+      <td>100</td>
+      <td>0.0636025</td>
+      <td>{'C': 1.2205782413950583, 'max_iter': 100, 'to...</td>
+      <td>0.932515</td>
+      <td>0.975460</td>
+      <td>0.948770</td>
+      <td>0.969262</td>
+      <td>0.983573</td>
+      <td>0.961901</td>
+      <td>0.018677</td>
+      <td>9</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>2.422230</td>
+      <td>0.043419</td>
+      <td>0.099070</td>
+      <td>0.013408</td>
+      <td>0.460406</td>
+      <td>150</td>
+      <td>0.675929</td>
+      <td>{'C': 0.46040553738405554, 'max_iter': 150, 't...</td>
+      <td>0.903885</td>
+      <td>0.944785</td>
+      <td>0.928279</td>
+      <td>0.963115</td>
+      <td>0.936345</td>
+      <td>0.935272</td>
+      <td>0.019505</td>
+      <td>77</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>2.353385</td>
+      <td>0.042457</td>
+      <td>0.103743</td>
+      <td>0.019966</td>
+      <td>0.0224889</td>
+      <td>200</td>
+      <td>0.926026</td>
+      <td>{'C': 0.022488859587115044, 'max_iter': 200, '...</td>
+      <td>0.903885</td>
+      <td>0.918200</td>
+      <td>0.897541</td>
+      <td>0.936475</td>
+      <td>0.917864</td>
+      <td>0.914789</td>
+      <td>0.013473</td>
+      <td>122</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>2.346821</td>
+      <td>0.100449</td>
+      <td>0.092348</td>
+      <td>0.021111</td>
+      <td>4.48723</td>
+      <td>150</td>
+      <td>1.93366</td>
+      <td>{'C': 4.4872291164262705, 'max_iter': 150, 'to...</td>
+      <td>0.889571</td>
+      <td>0.889571</td>
+      <td>0.897541</td>
+      <td>0.932377</td>
+      <td>0.919918</td>
+      <td>0.905776</td>
+      <td>0.017325</td>
+      <td>175</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[30]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">col_split</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;split&#39;</span><span class="p">)</span>
+<span class="n">col_time</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">)</span>
+<span class="n">col_to_drop</span><span class="o">=</span><span class="p">[]</span>
+<span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">cv_results_df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">col_split</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">column</span><span class="p">)</span> <span class="ow">or</span> <span class="n">col_time</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">column</span><span class="p">):</span>
+        <span class="n">col_to_drop</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">column</span><span class="p">)</span>
+        
+<span class="n">cv_results_df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">col_to_drop</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">cv_results_df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">&#39;rank_test_score&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+        
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt output_prompt">Out[30]:</div>
+
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>param_C</th>
+      <th>param_max_iter</th>
+      <th>param_tol</th>
+      <th>params</th>
+      <th>mean_test_score</th>
+      <th>std_test_score</th>
+      <th>rank_test_score</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>149</th>
+      <td>0.886866</td>
+      <td>100</td>
+      <td>0.0111008</td>
+      <td>{'C': 0.8868657577084735, 'max_iter': 100, 'to...</td>
+      <td>0.984433</td>
+      <td>0.004588</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>95</th>
+      <td>0.641906</td>
+      <td>200</td>
+      <td>0.013762</td>
+      <td>{'C': 0.6419061780025663, 'max_iter': 200, 'to...</td>
+      <td>0.981155</td>
+      <td>0.003738</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <th>51</th>
+      <td>0.734859</td>
+      <td>100</td>
+      <td>0.0229452</td>
+      <td>{'C': 0.7348588852607294, 'max_iter': 100, 'to...</td>
+      <td>0.971323</td>
+      <td>0.010575</td>
+      <td>3</td>
+    </tr>
+    <tr>
+      <th>69</th>
+      <td>1.07967</td>
+      <td>200</td>
+      <td>0.0215767</td>
+      <td>{'C': 1.0796660221649614, 'max_iter': 200, 'to...</td>
+      <td>0.970914</td>
+      <td>0.011550</td>
+      <td>4</td>
+    </tr>
+    <tr>
+      <th>102</th>
+      <td>1.0661</td>
+      <td>200</td>
+      <td>0.0308276</td>
+      <td>{'C': 1.0660996166347303, 'max_iter': 200, 'to...</td>
+      <td>0.966817</td>
+      <td>0.007976</td>
+      <td>5</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Los resultados han sido francamente buenos, utilizaremos evidentemente el mejor de los estimadores obtenidos a través de la malla para generar nuestras predicciones sobre el set de testeo y hacer las consecuentes evaluaciones. Pero antes, habrá que repetir todo el procesamiento de los correos al set de testeo y, ajustar las columnas a las utilizadas durante el entrenamiento de nuestro modelo:</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[39]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1">#Correo con estructura no válida</span>
+<span class="c1">#X_test=np.delete(X_test, 344)</span>
+<span class="c1">#y_test=np.delete(y_test, 344)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[41]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1">#os.system(&#39;play -nq -t alsa synth {} sine {}&#39;.format(1, 2500))</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[42]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="k">import</span> <span class="n">accuracy_score</span><span class="p">,</span> <span class="n">classification_report</span><span class="p">,</span> <span class="n">confusion_matrix</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[45]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">content_sparse_matrix_test</span><span class="p">,</span> <span class="n">content_columns_test</span><span class="p">,</span> <span class="n">docs_test</span><span class="o">=</span><span class="n">get_content_sparse_matrix</span><span class="p">(</span><span class="n">X_test</span><span class="p">)</span>
+<span class="n">content_df_test</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">content_sparse_matrix_test</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">content_columns_test</span><span class="p">)</span>
+<span class="n">subject_sparse_matrix_test</span><span class="p">,</span> <span class="n">subject_columns_test</span><span class="p">,</span> <span class="n">docs_test</span><span class="o">=</span><span class="n">get_subject_sparse_matrix</span><span class="p">(</span><span class="n">X_test</span><span class="p">)</span>
+<span class="n">subject_columns_test</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">+</span><span class="s1">&#39;_subj&#39;</span> <span class="p">,</span> <span class="n">subject_columns_test</span><span class="p">))</span>
+<span class="n">subject_df_test</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">subject_sparse_matrix_test</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">subject_columns_test</span><span class="p">)</span>
+<span class="n">content_type_array_test</span><span class="o">=</span><span class="n">get_content_type_array</span><span class="p">(</span><span class="n">X_test</span><span class="p">)</span>
+<span class="n">content_type_df_test</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">get_dummies</span><span class="p">(</span><span class="n">content_type_array_test</span><span class="p">,</span> <span class="n">drop_first</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">X_test_pd</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">content_df_test</span><span class="p">,</span> <span class="n">subject_df_test</span><span class="p">,</span><span class="n">content_type_df_test</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">y_test_pd</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;target&#39;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">X_train_pd</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">col</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">X_test_pd</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="n">X_test_pd</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">X_test_pd</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+<span class="n">X_test_pd</span><span class="o">=</span><span class="n">X_test_pd</span><span class="p">[</span><span class="n">X_train_pd</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
+<span class="n">test_pred</span><span class="o">=</span><span class="n">randomized_search</span><span class="o">.</span><span class="n">best_estimator_</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_test_pd</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>Elapsed time: 55 seconds
+Elapsed time: 20 seconds
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[46]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">accuracy_score</span><span class="p">(</span><span class="n">y_test_pd</span><span class="p">,</span> <span class="n">test_pred</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt output_prompt">Out[46]:</div>
+
+
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>0.9868852459016394</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[47]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">classification_report</span><span class="p">(</span><span class="n">y_test_pd</span><span class="p">,</span> <span class="n">test_pred</span><span class="p">))</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>              precision    recall  f1-score   support
+
+           0       0.99      0.99      0.99       497
+           1       0.97      0.96      0.96       113
+
+    accuracy                           0.99       610
+   macro avg       0.98      0.97      0.98       610
+weighted avg       0.99      0.99      0.99       610
+
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[48]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">cm</span><span class="o">=</span><span class="n">confusion_matrix</span><span class="p">(</span><span class="n">y_test_pd</span><span class="p">,</span> <span class="n">test_pred</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[49]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">figure</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span><span class="mi">8</span><span class="p">))</span>
+<span class="n">g1</span><span class="o">=</span><span class="n">sns</span><span class="o">.</span><span class="n">heatmap</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="n">annot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="n">cbar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+
+<div class="output_png output_subarea ">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAd0AAAHSCAYAAACpaxG7AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEgAACxIB0t1+/AAAADh0RVh0U29mdHdhcmUAbWF0cGxvdGxpYiB2ZXJzaW9uMy4xLjIsIGh0dHA6Ly9tYXRwbG90bGliLm9yZy8li6FKAAAOkklEQVR4nO3de6zedWHH8c85bSftVFrlIoUx53SPETMvQJ0YtaIUHXOOqYO5ZUxZjCLOeSfOyFCXcB1KJs4Lt6lQB3hhExAFK3JtvXYr+IhxY1DEtqwtthranp79ATOipc2w5/NA+3olTfr8znPyfJ60zft8z/OcdGxycjIAwNQbH/UAANhZiC4AlIguAJSILgCUiC4AlIguAJRMn+oH2LjqB34mCUZg5tznjnoC7LQ2bVg+tqXrTroAUCK6AFAiugBQIroAUCK6AFAiugBQIroAUCK6AFAiugBQIroAUCK6AFAiugBQIroAUCK6AFAiugBQIroAUCK6AFAiugBQIroAUCK6AFAiugBQIroAUCK6AFAiugBQIroAUCK6AFAiugBQIroAUCK6AFAiugBQIroAUCK6AFAiugBQIroAUCK6AFAiugBQIroAUCK6AFAiugBQIroAUCK6AFAiugBQIroAUCK6AFAiugBQIroAUCK6AFAiugBQIroAUCK6AFAiugBQIroAUCK6AFAiugBQIroAUCK6AFAiugBQIroAUCK6AFAiugBQIroAUCK6AFAiugBQIroAUCK6AFAiugBQIroAUCK6AFAiugBQIroAUCK6AFAiugBQIroAUCK6AFAiugBQIroAUCK6AFAiugBQIroAUCK6AFAiugBQIroAUCK6AFAiugBQIroAUCK6AFAiugBQIroAUCK6AFAiugBQIroAUCK6AFAiugBQIroAUCK6AFAiugBQIroAUCK6AFAiugBQIroAUCK6AFAiugBQIroAUCK6ZGJiIq/4yzfkmLcfnyS58RvfzitffWz+6M9fl3e979Rs2jRxv/v/+83DPO15h+WKr3xtFHNhh/aIRzwi11/7b/nG17+U73z7qhz/nreOehLbkeiST174+Tzh8fsmSTZv3px3vf+0nHLCcfncJ/8pcx+3Rz5/2Zd/dt+JiYmcfuY5OejAZ45qLuzQ7rnnnrxowZ9k/wMOyf4HLMihC+bnWfP8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
+"
+>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span> 
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+ 
+
+
+<script type="text/javascript">if (!document.getElementById('mathjaxscript_pelican_#%@#$@#')) {
+    var mathjaxscript = document.createElement('script');
+    mathjaxscript.id = 'mathjaxscript_pelican_#%@#$@#';
+    mathjaxscript.type = 'text/javascript';
+    mathjaxscript.src = '//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML';
+    mathjaxscript[(window.opera ? "innerHTML" : "text")] =
+        "MathJax.Hub.Config({" +
+        "    config: ['MMLorHTML.js']," +
+        "    TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } }," +
+        "    jax: ['input/TeX','input/MathML','output/HTML-CSS']," +
+        "    extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']," +
+        "    displayAlign: 'center'," +
+        "    displayIndent: '0em'," +
+        "    showMathMenu: true," +
+        "    tex2jax: { " +
+        "        inlineMath: [ ['$','$'] ], " +
+        "        displayMath: [ ['$$','$$'] ]," +
+        "        processEscapes: true," +
+        "        preview: 'TeX'," +
+        "    }, " +
+        "    'HTML-CSS': { " +
+        " linebreaks: { automatic: true, width: '95% container' }, " +
+        "        styles: { '.MathJax_Display, .MathJax .mo, .MathJax .mi, .MathJax .mn': {color: 'black ! important'} }" +
+        "    } " +
+        "}); ";
+    (document.body || document.getElementsByTagName('head')[0]).appendChild(mathjaxscript);
+}
+</script>
+
+    </article>
+
+        <div class="tags">
+            <p>tags: <a href="./tag/machine-learning.html">Machine Learning</a>, <a href="./tag/nlp.html">NLP</a>, <a href="./tag/spacy.html">SpaCy</a></p>
+        </div>
+
+    <hr>
+
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <ul class="list-inline text-center">
+                            <li>
+                                <a href="https://github.com/ibasa14">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fa fa-circle fa-stack-2x"></i>
+                                        <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                    </ul>
+<p style='margin-left:38%'><strong>&copy;  Ignacio Basagoiti</strong></p>                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="./theme/js/jquery.min.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="./theme/js/bootstrap.min.js"></script>
+
+        <!-- Custom Theme JavaScript -->
+        <script src="./theme/js/clean-blog.min.js"></script>
+
+</body>
+
+</html>
